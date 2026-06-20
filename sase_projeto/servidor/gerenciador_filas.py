@@ -1,4 +1,4 @@
-# Controla as listas N e P. Lembre-se da regra:
+# Controla as listas N e P. 
 # Para cada duas SEAs do tipo N informadas, a próxima deve ser P (se houver)
 class GerenciadorFilas:
     def __init__(self):
