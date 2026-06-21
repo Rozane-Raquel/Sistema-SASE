@@ -1,5 +1,6 @@
-# Módulo SRV: Escuta conexões socket de TS, TA e TV.
-# Deve registrar o instante em que recebe e envia mensagens.
+'''Escuta conexões socket de TS, TA e TV'''
+'''Registra o instante em que recebe e envia mensagens'''
+
 import socket
 import threading
 from datetime import datetime 
@@ -15,37 +16,33 @@ def selecionar_proxima_senha():
     with lock:
 
         if not GerenciadorFilas.fila_normal and not GerenciadorFilas.fila_prioritaria:
-            return "Não existe senhas aguardando..."
+            return "Nenhuma Senha"
 
+       
         if GerenciadorFilas.contagem_normal_seguida >=2:
 
             if GerenciadorFilas.fila_prioritaria:
                 senha=GerenciadorFilas.fila_prioritaria.pop(0)
                 GerenciadorFilas.contagem_normal_seguida=0
-                return senha
+                return senha 
             
             elif GerenciadorFilas.fila_normal:
                 senha = GerenciadorFilas.fila_normal.pop(0)
                 GerenciadorFilas.contagem_normal_seguida +=1
                 return senha
-            
-        if GerenciadorFilas.fila_prioritaria:
-
-            senha = GerenciadorFilas.fila_prioritaria.pop(0)
-            GerenciadorFilas.contagem_normal_seguida=0
-            return senha
-        
         elif GerenciadorFilas.fila_normal:
-
-            senha = GerenciadorFilas.fila_normal.pop(0)
-            GerenciadorFilas.contagem_normal_seguida +=1
-            return senha 
+                senha = GerenciadorFilas.fila_normal.pop(0)
+                GerenciadorFilas.contagem_normal_seguida +=1
+                return senha
+            
         
-        return "Nenhuma Senha"
+        return "Nenhuma_Senha"
 
 
 def transmitir_tv (mensagem):
+
     with lock:
+
         lista_remover = []
         for tv_socket in GerenciadorFilas.terminais_tv :
             
@@ -67,7 +64,7 @@ def gerenciar_cliente (cliente_socket, cliente_address):
         if not requisicao:
             return 
         
-        if requisicao.startswith("gerar:"):
+        if requisicao.startswith("gerar"):
             tipo_e_senha= requisicao.split(':')[1]
             timestamp = datetime.now().strftime("%H:%M:%S")
             print(f"[{timestamp}] [TS] Recebida nova senha gerada: {tipo_e_senha}")
@@ -81,10 +78,10 @@ def gerenciar_cliente (cliente_socket, cliente_address):
             cliente_socket.sendall('ok'.encode('utf-8'))
             cliente_socket.close()
 
-        elif requisicao == "chamar_proxima:":
+        elif requisicao == "chamar_proxima":
             senha_selecionada=selecionar_proxima_senha()
             timestamp = datetime.now().strftime("%H:%M:%S")
-            if senha_selecionada != "NENHUMA_SENHA":
+            if senha_selecionada != "nenhuma_senha":
                 print(f"[{timestamp}] [SRV] Enviando senha {senha_selecionada} para o TA.")
                 transmitir_tv(f"PAINEL:{senha_selecionada}")
             else: 
