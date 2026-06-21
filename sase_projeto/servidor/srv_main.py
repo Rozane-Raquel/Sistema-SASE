@@ -18,7 +18,11 @@ def selecionar_proxima_senha():
         if not GerenciadorFilas.fila_normal and not GerenciadorFilas.fila_prioritaria:
             return "Nenhuma Senha"
 
-       
+        if not GerenciadorFilas.fila_normal and GerenciadorFilas.fila_prioritaria:
+            senha=GerenciadorFilas.fila_prioritaria.pop(0)
+            GerenciadorFilas.contagem_normal_seguida=0
+            return senha
+        
         if GerenciadorFilas.contagem_normal_seguida >=2:
 
             if GerenciadorFilas.fila_prioritaria:
