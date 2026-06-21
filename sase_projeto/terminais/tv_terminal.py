@@ -29,11 +29,18 @@ def iniciar_painel_tv():
                     break
 
                 if dados.startswith("PAINEL:"):
-                    senha_chamada = dados.split(":")[1]
 
-                    print ("\n" + "#" * 40)
-                    print(f" >>>  NOVO ATENDIMENTO: SENHA {senha_chamada}  <<<")
-                    print ("\n" + "#" * 40)
+                    partes = dados.split(":", 1)[1].split("|")
+
+                    senha     = partes[0]
+                    setor     = partes[1]
+                    sala      = partes[2]
+                    atendente = partes[3]
+
+                    print("\n" + "#" * 40)
+                    print(f">>> NOVO ATENDIMENTO <<<")
+                    print(f"{senha} - {setor} (Sala {sala} - Atendente: {atendente})")
+                    print("#" * 40)
 
         except socket.error as e:
             print (f"[ERRO TV] Não foi possível conectar ao painel central: {e}")

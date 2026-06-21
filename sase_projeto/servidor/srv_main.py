@@ -9,7 +9,18 @@ lock = threading.Lock()
 
 
 
-
+GUICHES = {
+    "1": {
+        "setor": "Cadastro unico",
+        "sala": "01",
+        "atendente": "Joao Carlos da Silva"
+    },
+    "2": {
+        "setor": "Auxilios",
+        "sala": "02",
+        "atendente": "Maria Eduarda Ferreira"
+    }
+}
 
 def selecionar_proxima_senha():
 
@@ -82,15 +93,35 @@ def gerenciar_cliente (cliente_socket, cliente_address):
             cliente_socket.sendall('ok'.encode('utf-8'))
             cliente_socket.close()
 
-        elif requisicao == "chamar_proxima":
-            senha_selecionada=selecionar_proxima_senha()
+        elif requisicao.startswith("chamar_proxima"):
+            guiche_id = requisicao.split(":", 1)[1] if ":" in requisicao else ""
+
+            senha_selecionada = selecionar_proxima_senha()
             timestamp = datetime.now().strftime("%H:%M:%S")
-            if senha_selecionada != "nenhuma_senha":
-                print(f"[{timestamp}] [SRV] Enviando senha {senha_selecionada} para o TA.")
-                transmitir_tv(f"PAINEL:{senha_selecionada}")
-            else: 
-                print(f"[{timestamp}] [SRV] TA solicitou senha, mas as filas estão vazias.")
-            cliente_socket.sendall(senha_selecionada.encode('utf-8'))
+
+            if senha_selecionada != "Nenhuma Senha":
+                info = GUICHES.get(guiche_id, {
+                    "setor": "Atendimento Geral",
+                    "sala": "00",
+                    "atendente": "Não definido"
+                })
+
+                setor = info["setor"]
+                sala = info["sala"]
+                atendente = info["atendente"]
+
+                print(f"[{timestamp}] [SRV] {senha_selecionada} -> {setor} (Sala {sala} - {atendente})")
+
+               
+                transmitir_tv(f"PAINEL:{senha_selecionada}|{setor}|{sala}|{atendente}")
+
+ 
+                resposta_ta = f"{senha_selecionada}|{setor}|{sala}|{atendente}"
+                cliente_socket.sendall(resposta_ta.encode('utf-8'))
+            else:
+                print(f"[{timestamp}] [SRV] Filas vazias.")
+                cliente_socket.sendall("Nenhuma Senha".encode('utf-8'))
+            
             cliente_socket.close()
 
 
@@ -108,7 +139,7 @@ def iniciar_servidor(host='127.0.0.1', port=5000):
   
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    ''' Permite reutilizar a porta imediatamente se o servidor for reiniciado rapidamente'''
+    
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     try:
@@ -118,15 +149,15 @@ def iniciar_servidor(host='127.0.0.1', port=5000):
         print("Aguardando conexões dos módulos (TS, TA, TV)...")
         
         while True:
-            '''Bloqueia até que um cliente se conecte'''
+
             client_socket, client_address = server_socket.accept()
             
-            '''Cria uma thread dedicada para atender a este cliente em paralelo'''
+           
             thread_cliente = threading.Thread(
                 target=gerenciar_cliente, 
                 args=(client_socket, client_address)
             )
-            thread_cliente.daemon = True # Encerra as threads se o script principal fechar
+            thread_cliente.daemon = True 
             thread_cliente.start()
             
     except KeyboardInterrupt:

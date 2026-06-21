@@ -5,8 +5,8 @@
 import socket
 
 
-contador_n= 0
-contador_p= 0
+contador_n= 1
+contador_p= 1
 
 def gerar_senha_normal():
     global contador_n
